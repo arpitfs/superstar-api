@@ -1,19 +1,19 @@
-using ApiWorld.Data;
+using ApiWorld.Installer;
 using ApiWorld.Starters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
+using System.Linq;
 
 namespace ApiWorld
 {
     public class Startup
     {
         public Startup(IConfiguration configuration)
-{
+        {
             Configuration = configuration;
         }
 
@@ -22,16 +22,12 @@ namespace ApiWorld
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(
-                    Configuration.GetConnectionString("DefaultConnection")));
-            services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-                .AddEntityFrameworkStores<ApplicationDbContext>();
-            services.AddControllersWithViews();
-            services.AddRazorPages();
-            services.AddSwaggerGen(x => {
-                x.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Api World", Version = "v1"});
-            });
+            var installers = typeof(Startup).Assembly.ExportedTypes
+                .Where(x => typeof(IInstaller).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract)
+                .Select(Activator.CreateInstance)
+                .Cast<IInstaller>()
+                .ToList();
+            installers.ForEach(installer => installer.Install(Configuration, services));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
