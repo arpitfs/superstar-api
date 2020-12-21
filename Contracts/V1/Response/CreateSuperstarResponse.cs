@@ -1,8 +1,6 @@
-using System;
-
-namespace ApiWorld.Domain 
+﻿namespace ApiWorld.Contracts.V1.Response
 {
-    public class SuperStar
+    public class CreateSuperstarResponse
     {
         public string SuperstarId { get; set; }
         public string Name { get; set; }

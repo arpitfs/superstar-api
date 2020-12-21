@@ -10,8 +10,11 @@ namespace ApiWorld.Installers
         {
             services.AddControllersWithViews();
             services.AddRazorPages();
-            services.AddSwaggerGen(x => {
-                x.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Api World", Version = "v1" });
+            services.AddSwaggerGen(x =>
+            {
+                x.SwaggerDoc("v1",
+                    new Microsoft.OpenApi.Models.OpenApiInfo { Title = configuration["SwaggerOptions:Description"],
+                        Version = "v1" });
             });
         }
     }

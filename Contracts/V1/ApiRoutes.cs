@@ -9,6 +9,8 @@ namespace ApiWorld.Contracts.V1
         public static class SuperStar
         {
             public const string GetAll = Base + "/superstar";
+            public const string Get = Base + "/superstar/{superstarId}";
+            public const string Create = Base + "/superstar";
         }
     }
 }

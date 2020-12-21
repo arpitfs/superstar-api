@@ -1,12 +1,10 @@
-using ApiWorld.Installer;
+using ApiWorld.Installers;
 using ApiWorld.Starters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Linq;
 
 namespace ApiWorld
 {
@@ -22,12 +20,7 @@ namespace ApiWorld
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            var installers = typeof(Startup).Assembly.ExportedTypes
-                .Where(x => typeof(IInstaller).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract)
-                .Select(Activator.CreateInstance)
-                .Cast<IInstaller>()
-                .ToList();
-            installers.ForEach(installer => installer.Install(Configuration, services));
+            services.InstallerServicesInAssembly(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
