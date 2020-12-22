@@ -1,4 +1,5 @@
 ﻿using ApiWorld.Installer;
+using ApiWorld.Services;
 using ApiWorld.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
@@ -16,6 +17,7 @@ namespace ApiWorld.Installers
             var jwtSettings = new JwtSettings();
             configuration.GetSection(nameof(jwtSettings)).Bind(jwtSettings);
             services.AddSingleton(jwtSettings);
+            services.AddScoped<IIdentityService, IdentityService>();
 
             services.AddControllersWithViews();
             services.AddRazorPages();

@@ -4,9 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 using ApiWorld.Contracts.V1;
 using System;
 using ApiWorld.Contracts.V1.Response;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace ApiWorld.Controllers.V1
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class SuperstarController : Controller
     {
         public readonly List<SuperStar> _superStars;
