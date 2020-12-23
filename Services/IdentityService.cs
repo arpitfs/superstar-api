@@ -22,6 +22,25 @@ namespace ApiWorld.Services
             _jwtSettings = jwtSettings;
         }
 
+        public async Task<AuthenticationRequest> LoginAsync(string email, string password)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+            {
+                return new AuthenticationRequest { ErrorMessages = new[] { "User does not exists" } };
+            }
+
+            var userPassword = await _userManager.CheckPasswordAsync(user, password);
+
+            if(!userPassword)
+            {
+                return new AuthenticationRequest { ErrorMessages = new[] { "Username/password is incorrect" } };
+            }
+
+            return GetTokenForUser(user);
+        }
+
         public async Task<AuthenticationRequest> RegisterAsync(string email, string password)
         {
             var existingUser = await _userManager.FindByEmailAsync(email);
@@ -44,6 +63,11 @@ namespace ApiWorld.Services
                 return new AuthenticationRequest { ErrorMessages = createdUser.Errors.Select(x => x.Description) };
             }
 
+            return GetTokenForUser(newUser);
+        }
+
+        private AuthenticationRequest GetTokenForUser(IdentityUser newUser)
+        {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_jwtSettings.Secret);
             var tokenDescriptor = new SecurityTokenDescriptor
