@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using ApiWorld.Domain;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ApiWorld.Data
 {
@@ -12,5 +10,7 @@ namespace ApiWorld.Data
             : base(options)
         {
         }
+
+        public DbSet<SuperStar> SuperStars { get; set; }
     }
 }

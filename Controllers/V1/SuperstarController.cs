@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using ApiWorld.Domain;
 using Microsoft.AspNetCore.Mvc;
 using ApiWorld.Contracts.V1;
@@ -6,27 +5,25 @@ using System;
 using ApiWorld.Contracts.V1.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using ApiWorld.Repository;
 
 namespace ApiWorld.Controllers.V1
 {
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class SuperstarController : Controller
     {
-        public readonly List<SuperStar> _superStars;
+        private readonly ISuperStarRepository _superStarRepository;
 
-        public SuperstarController()
+        public SuperstarController(ISuperStarRepository superStarRepository)
         {
-            _superStars = new List<SuperStar>
-            {
-                new SuperStar { SuperstarId = Guid.NewGuid().ToString(), Name = "Undertaker", Height = "6'10", Weight = "320 pounds", Smack = "Chockslam"},
-                new SuperStar { SuperstarId = Guid.NewGuid().ToString(), Name = "Rock", Height = "6'5", Weight = "265 pounds", Smack = "RockBottom"}
-            };
+            _superStarRepository = superStarRepository;
         }
 
         [HttpGet(ApiRoutes.SuperStar.GetAll)]
         public IActionResult Get()
         {
-            return Ok(_superStars);
+            var superStars = _superStarRepository.GetAll();
+            return Ok(superStars);
         }
 
         [HttpPost(ApiRoutes.SuperStar.Create)]
@@ -41,7 +38,7 @@ namespace ApiWorld.Controllers.V1
                 Weight = superStarRequest.Weight
             };
 
-            _superStars.Add(superStar);
+            _superStarRepository.Save(superStar);
             var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.ToUriComponent()}";
             var location = baseUrl + "/" + ApiRoutes.SuperStar.Get.Replace("{superstarId}", superStar.SuperstarId);
 

@@ -1,5 +1,6 @@
 ﻿using ApiWorld.Data;
 using ApiWorld.Installer;
+using ApiWorld.Repository;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -16,6 +17,7 @@ namespace ApiWorld.Installers
                     configuration.GetConnectionString("DefaultConnection")));
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+            services.AddScoped<ISuperStarRepository, SuperStarRepository>();
         }
     }
 }
