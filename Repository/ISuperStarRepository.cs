@@ -7,6 +7,7 @@ namespace ApiWorld.Repository
     public interface ISuperStarRepository
     {
         Task Save(SuperStar superStar);
-        IEnumerable<SuperStar> GetAll();
+        IEnumerable<SuperStar > GetAll();
+        Task<bool> DeleteAsync(string superStarId);
     }
 }

@@ -15,6 +15,14 @@ namespace ApiWorld.Repository
             _dbContext = dbContext;
         }
 
+        public async Task<bool> DeleteAsync(string superStarId)
+        {
+            var superStar = _dbContext.SuperStars.Where(x => x.SuperstarId == superStarId);
+            _dbContext.Entry(superStar).State = Microsoft.EntityFrameworkCore.EntityState.Deleted;
+            var value = await _dbContext.SaveChangesAsync();
+            return (value > 0) ? true : false;
+        }
+
         public IEnumerable<SuperStar> GetAll() => _dbContext.SuperStars.ToList();
 
         public async Task Save(SuperStar superStar)

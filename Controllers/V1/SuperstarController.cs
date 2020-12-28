@@ -6,6 +6,8 @@ using ApiWorld.Contracts.V1.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using ApiWorld.Repository;
+using ApiWorld.Extensions;
+using System.Threading.Tasks;
 
 namespace ApiWorld.Controllers.V1
 {
@@ -35,7 +37,8 @@ namespace ApiWorld.Controllers.V1
                 Height = superStarRequest.Height,
                 Name = superStarRequest.Name,
                 SuperstarId = Guid.NewGuid().ToString(),
-                Weight = superStarRequest.Weight
+                Weight = superStarRequest.Weight,
+                UserId = HttpContext.GetUserId()
             };
 
             _superStarRepository.Save(superStar);
@@ -52,6 +55,19 @@ namespace ApiWorld.Controllers.V1
             };
 
             return Created(location, createdSuperstar);
+        }
+
+        [HttpPost(ApiRoutes.SuperStar.Delete)]
+        public async Task<IActionResult> Delete([FromRoute] string superStarId)
+        {
+            var deletedStar = await _superStarRepository.DeleteAsync(superStarId);
+
+            if(deletedStar)
+            {
+                return NoContent();
+            }
+
+            return NotFound();
         }
     }
 }
