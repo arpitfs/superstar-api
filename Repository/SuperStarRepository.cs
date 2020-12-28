@@ -16,7 +16,7 @@ namespace ApiWorld.Repository
             _dbContext = dbContext;
         }
 
-        public async Task<bool> ClaimedUserAsync(string superStarId)
+        public async Task<bool> ClaimedUserAsync(string superStarId, string userId)
         {
             var superStar = await _dbContext.SuperStars.AsNoTracking().SingleOrDefaultAsync(s => s.SuperstarId == superStarId);
             if(superStar == null)
@@ -24,7 +24,7 @@ namespace ApiWorld.Repository
                 return false;
             }
 
-            if(superStar.SuperstarId != superStarId)
+            if (superStar.UserId != userId)
             {
                 return false;
             }

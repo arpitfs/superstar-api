@@ -60,7 +60,7 @@ namespace ApiWorld.Controllers.V1
         [HttpPost(ApiRoutes.SuperStar.Delete)]
         public async Task<IActionResult> Delete([FromRoute] string superStarId)
         {
-            var claimedUser = await _superStarRepository.ClaimedUserAsync(superStarId);
+            var claimedUser = await _superStarRepository.ClaimedUserAsync(superStarId, HttpContext.GetUserId());
 
             if(!claimedUser)
             {
