@@ -1,5 +1,6 @@
 ﻿using ApiWorld.Data;
 using ApiWorld.Domain;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,6 +14,22 @@ namespace ApiWorld.Repository
         public SuperStarRepository(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
+        }
+
+        public async Task<bool> ClaimedUserAsync(string superStarId)
+        {
+            var superStar = await _dbContext.SuperStars.AsNoTracking().SingleOrDefaultAsync(s => s.SuperstarId == superStarId);
+            if(superStar == null)
+            {
+                return false;
+            }
+
+            if(superStar.SuperstarId != superStarId)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public async Task<bool> DeleteAsync(string superStarId)

@@ -1,11 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace ApiWorld
 {
@@ -15,6 +9,21 @@ namespace ApiWorld
         {
             CreateHostBuilder(args).Build().Run();
         }
+
+        // Migration at service startUp
+
+        //public static async Task Main(string[] args)
+        //{
+        //    var host = CreateHostBuilder(args).Build();
+
+        //    using(var service = host.Services.CreateScope())
+        //    {
+        //        var dbContext = service.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        //        await dbContext.Database.MigrateAsync();
+        //    }
+
+        //    await host.RunAsync();
+        //}
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)

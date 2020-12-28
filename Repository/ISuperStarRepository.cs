@@ -9,5 +9,6 @@ namespace ApiWorld.Repository
         Task Save(SuperStar superStar);
         IEnumerable<SuperStar > GetAll();
         Task<bool> DeleteAsync(string superStarId);
+        Task<bool> ClaimedUserAsync(string superStarId);
     }
 }
