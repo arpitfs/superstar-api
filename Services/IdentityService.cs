@@ -1,4 +1,5 @@
-﻿using ApiWorld.Domain;
+﻿using ApiWorld.Data;
+using ApiWorld.Domain;
 using ApiWorld.Settings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -15,11 +16,16 @@ namespace ApiWorld.Services
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly JwtSettings _jwtSettings;
+        private readonly TokenValidationParameters _tokenValidationParameters;
+        private readonly ApplicationDbContext _dbContext;
 
-        public IdentityService(UserManager<IdentityUser> userManager, JwtSettings jwtSettings)
+        public IdentityService(UserManager<IdentityUser> userManager, JwtSettings jwtSettings,
+            TokenValidationParameters tokenValidationParameters, ApplicationDbContext dbContext)
         {
             _userManager = userManager;
             _jwtSettings = jwtSettings;
+            _tokenValidationParameters = tokenValidationParameters;
+            _dbContext = dbContext;
         }
 
         public async Task<AuthenticationRequest> LoginAsync(string email, string password)
@@ -38,7 +44,70 @@ namespace ApiWorld.Services
                 return new AuthenticationRequest { ErrorMessages = new[] { "Username/password is incorrect" } };
             }
 
-            return GetTokenForUser(user);
+            return await GetTokenForUser(user);
+        }
+
+        public async Task<AuthenticationRequest> RefreshTokenAsync(string token, string refreshToken)
+        {
+            var validatedToken = GetPrincipalFromToken(token);
+            if (validatedToken == null)
+            {
+                return new AuthenticationRequest { ErrorMessages = new[] { "Invalid Token" } };
+            }
+
+            var expiryTimeUnix = long.Parse(validatedToken.Claims
+                .Single(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
+
+            var expiryTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Local)
+                .AddSeconds(expiryTimeUnix);
+
+            if(expiryTime > DateTime.Now)
+            {
+                return new AuthenticationRequest { ErrorMessages = new[] { "Token not expired" } };
+            }
+
+            var jti = validatedToken.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Jti).Value;
+
+            var storedRefreshToken = _dbContext.RefreshTokens.SingleOrDefault(x => x.Token == refreshToken);
+            
+            if(storedRefreshToken ==  null || DateTime.Now > storedRefreshToken.ExpirationDate ||
+                storedRefreshToken.Invalidated || storedRefreshToken.Used || storedRefreshToken.JwtId != jti)
+            {
+                return new AuthenticationRequest { ErrorMessages = new[] { "Token invalid" } };
+            }
+
+            storedRefreshToken.Used = true;
+            _dbContext.RefreshTokens.Update(storedRefreshToken);
+            await _dbContext.SaveChangesAsync();
+
+            var user = await _userManager.FindByIdAsync(validatedToken.Claims.Single(x => x.Type == "id").Value);
+            return await GetTokenForUser(user);
+        }
+
+        private ClaimsPrincipal GetPrincipalFromToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            try
+            {
+                var principal = tokenHandler.ValidateToken(token, _tokenValidationParameters, out var validatedToken);
+                if(!isValidSignedToken(validatedToken))
+                {
+                    return null;
+                }
+
+                return principal;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        private bool isValidSignedToken(SecurityToken token)
+        {
+            return (token is JwtSecurityToken jwtSecurityToken) &&
+                jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
+                StringComparison.InvariantCultureIgnoreCase);
         }
 
         public async Task<AuthenticationRequest> RegisterAsync(string email, string password)
@@ -63,10 +132,10 @@ namespace ApiWorld.Services
                 return new AuthenticationRequest { ErrorMessages = createdUser.Errors.Select(x => x.Description) };
             }
 
-            return GetTokenForUser(newUser);
+            return await GetTokenForUser(newUser);
         }
 
-        private AuthenticationRequest GetTokenForUser(IdentityUser newUser)
+        private async Task<AuthenticationRequest> GetTokenForUser(IdentityUser newUser)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_jwtSettings.Secret);
@@ -80,16 +149,28 @@ namespace ApiWorld.Services
                         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                         new Claim("id", newUser.Id),
                     }),
-                Expires = DateTime.Now.AddDays(2),
+                Expires = DateTime.Now.Add(_jwtSettings.TokenLifeTime),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
+            var refreshToken = new RefreshToken
+            {
+                JwtId = token.Id,
+                UserId = newUser.Id,
+                CreationDate = DateTime.Now,
+                ExpirationDate = DateTime.Now.AddMonths(6)
+            };
+
+            await _dbContext.RefreshTokens.AddAsync(refreshToken);
+            _dbContext.SaveChanges();
+
             return new AuthenticationRequest
             {
                 Success = true,
-                Token = tokenHandler.WriteToken(token)
+                Token = tokenHandler.WriteToken(token),
+                RefreshToken = refreshToken.Token
             };
         }
     }

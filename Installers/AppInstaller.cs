@@ -23,6 +23,17 @@ namespace ApiWorld.Installers
             services.AddControllersWithViews();
             services.AddRazorPages();
 
+            var tokenValidationParameters = new TokenValidationParameters()
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret)),
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                RequireExpirationTime = false,
+                ValidateLifetime = false
+            };
+
+            services.AddSingleton(tokenValidationParameters);
             // Setup JWT token authentication for an api
             services.AddAuthentication(x =>
             {
@@ -33,21 +44,13 @@ namespace ApiWorld.Installers
             .AddJwtBearer(x =>
             {
                 x.SaveToken = true;
-                x.TokenValidationParameters = new TokenValidationParameters()
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret)),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    RequireExpirationTime = false,
-                    ValidateLifetime = false
-                };
+                x.TokenValidationParameters = tokenValidationParameters;
             });
 
             services.AddSwaggerGen(x =>
             {
                 x.SwaggerDoc("v1",
-                    new Microsoft.OpenApi.Models.OpenApiInfo { Title = configuration["SwaggerOptions:Description"],
+                    new OpenApiInfo { Title = configuration["SwaggerOptions:Description"],
                         Version = "v1" });
 
                 // To configure swagger with the authorization

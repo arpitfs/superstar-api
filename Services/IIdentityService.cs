@@ -7,5 +7,6 @@ namespace ApiWorld.Services
     {
         Task<AuthenticationRequest> RegisterAsync(string email, string password);
         Task<AuthenticationRequest> LoginAsync(string email, string password);
+        Task<AuthenticationRequest> RefreshTokenAsync(string token, string refreshToken);
     }
 }
