@@ -4,6 +4,7 @@ using ApiWorld.Settings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -119,8 +120,10 @@ namespace ApiWorld.Services
                 return new AuthenticationRequest { ErrorMessages = new[] { "User already exists" } };
             }
 
+            var userId = Guid.NewGuid();
             var newUser = new IdentityUser
             {
+                Id = userId.ToString(),
                 Email = email,
                 UserName = email
             };
@@ -132,6 +135,8 @@ namespace ApiWorld.Services
                 return new AuthenticationRequest { ErrorMessages = createdUser.Errors.Select(x => x.Description) };
             }
 
+            await _userManager.AddClaimAsync(newUser, new Claim("manager", "true"));
+
             return await GetTokenForUser(newUser);
         }
 
@@ -139,19 +144,23 @@ namespace ApiWorld.Services
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_jwtSettings.Secret);
+            var claims = new List<Claim>()
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, newUser.Email),
+                new Claim(JwtRegisteredClaimNames.Email, newUser.Email),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim("id", newUser.Id),
+            };
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(
-                    new[]
-                    {
-                        new Claim(JwtRegisteredClaimNames.Sub, newUser.Email),
-                        new Claim(JwtRegisteredClaimNames.Email, newUser.Email),
-                        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                        new Claim("id", newUser.Id),
-                    }),
+                Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.Now.Add(_jwtSettings.TokenLifeTime),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
+
+            var customClaim = await _userManager.GetClaimsAsync(newUser);
+            claims.AddRange(customClaim);
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
 

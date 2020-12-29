@@ -13,5 +13,6 @@ namespace ApiWorld.Data
 
         public DbSet<SuperStar> SuperStars { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<Manager> Managers { get; set; }
     }
 }

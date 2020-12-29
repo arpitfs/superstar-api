@@ -19,7 +19,7 @@ namespace ApiWorld.Installers
             configuration.GetSection(nameof(jwtSettings)).Bind(jwtSettings);
             services.AddSingleton(jwtSettings);
             services.AddScoped<IIdentityService, IdentityService>();
-
+                
             services.AddControllersWithViews();
             services.AddRazorPages();
 
@@ -45,6 +45,11 @@ namespace ApiWorld.Installers
             {
                 x.SaveToken = true;
                 x.TokenValidationParameters = tokenValidationParameters;
+            });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("Manager", builder => builder.RequireClaim("manager", "true"));
             });
 
             services.AddSwaggerGen(x =>
