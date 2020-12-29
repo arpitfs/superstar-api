@@ -1,7 +1,9 @@
-﻿using ApiWorld.Installer;
+﻿using ApiWorld.Authorization;
+using ApiWorld.Installer;
 using ApiWorld.Services;
 using ApiWorld.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -49,9 +51,13 @@ namespace ApiWorld.Installers
 
             services.AddAuthorization(options =>
             {
+                // Custom claim policy for the endpoint present in the token
                 options.AddPolicy("Manager", builder => builder.RequireClaim("manager", "true"));
+                // Custom authorization policy depending on the policy requirement the endpoint is accessed
+                options.AddPolicy("AuthorizationPolicy", buiilder => buiilder.AddRequirements(new Authorization.AuthorizationPolicy("api.com")));
             });
 
+            services.AddSingleton<IAuthorizationHandler, AuthorizationPolicyHandler>();
             services.AddSwaggerGen(x =>
             {
                 x.SwaggerDoc("v1",
