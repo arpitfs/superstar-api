@@ -24,5 +24,11 @@ namespace ApiWorld.Repository
         }
 
         public IEnumerable<Manager> GetAll() => _dbContext.Managers.ToList();
+
+        public async Task Save(Manager manager)
+        {
+            await _dbContext.AddAsync(manager);
+            _dbContext.SaveChanges();
+        }
     }
 }

@@ -8,5 +8,6 @@ namespace ApiWorld.Repository
     {
         IEnumerable<Manager> GetAll();
         Task<bool> DeleteAsync(string managerId);
+        Task Save(Manager manager);
     }
 }

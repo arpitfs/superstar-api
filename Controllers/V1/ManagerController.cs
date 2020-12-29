@@ -1,8 +1,12 @@
 ﻿using ApiWorld.Contracts.V1;
+using ApiWorld.Contracts.V1.Request;
+using ApiWorld.Contracts.V1.Response;
+using ApiWorld.Domain;
 using ApiWorld.Repository;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading.Tasks;
 
 namespace ApiWorld.Controllers.V1
@@ -31,6 +35,31 @@ namespace ApiWorld.Controllers.V1
         public async Task<IActionResult> Delete(string managerId)
         {
             return Ok(await _managerRepository.DeleteAsync(managerId));
+        }
+
+        [HttpPost(ApiRoutes.Manager.Create)]
+        public IActionResult Create([FromBody] CreateManagerRequest managerRequest)
+        {
+            var manager = new Manager
+            {
+                ManagerId = Guid.NewGuid().ToString(),
+                Event = managerRequest.Event,
+                IsCurrentManager = managerRequest.IsManager,
+                Name = managerRequest.Name
+            };
+
+            _managerRepository.Save(manager);
+            var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.ToUriComponent()}";
+            var location = baseUrl + "/" + ApiRoutes.SuperStar.Get.Replace("{managerId}", manager.ManagerId);
+
+            var createdManager = new CreateManagerResponse
+            {
+                Event = managerRequest.Event,
+                IsManager = managerRequest.IsManager,
+                Name = managerRequest.Name
+            };
+
+            return Created(location, createdManager);
         }
     }
 }

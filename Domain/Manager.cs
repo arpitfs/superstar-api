@@ -6,7 +6,8 @@ namespace ApiWorld.Domain
     {
         [Key]
         public string ManagerId { get; set; }
-        public string IsCurrentManager { get; set; }
+        public bool IsCurrentManager { get; set; }
         public string Event { get; set; }
+        public string Name { get; set; }
     }
 }

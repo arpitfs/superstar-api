@@ -25,6 +25,8 @@ namespace ApiWorld.Contracts.V1
         {
             public const string GetAll = Base + "/manager";
             public const string Delete = Base + "/manager/{managerId}";
+            public const string Create = Base + "/manager";
+            public const string Get = Base + "/manager/{managerId}";
         }
     }
 }
