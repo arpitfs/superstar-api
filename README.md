@@ -1,4 +1,4 @@
-### Superstar Api ###
+### Superstar Endpoints ###
 
 This is an api project which is a complete demostration of working and the functionality of api. The project asp.net core. The api contains two endpoints which do the operations on wwe superstar and managers. The api is used to do crud operations. The api communicates with a database and in the project entity framework code first approach is used.
 
